@@ -4,7 +4,7 @@ This library uses f-string syntax to parse a string and values.
 
 ## Example
 
-```python```
+```python
 # create string
 x = 5555555
 string = f"abc{x:,}abc123"
