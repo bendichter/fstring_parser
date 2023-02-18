@@ -9,17 +9,13 @@ This library uses f-string syntax to parse a string and values.
 x = 5555555
 string = f"abc{x:,}abc123"
 print(string)
+# recover data from string
+from fstring_parser import parse_fstring
+data = parse_fstring("abc{x:,}abc123", string)
+print(data)
 ```
 ```
 abc5,555,555abc123
-```
-
-```python
-# recover data from string
-from fstring_parser import parse_fstring
-parse_fstring("abc{x:,}abc123", "abc5,555,555abc123")
-```
-```
 {'x': 5555555}
 ```
 
