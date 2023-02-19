@@ -23,15 +23,11 @@ def get_regex_for_datetime_format(_format):
 
 
 def get_entry_regex_pattern_and_parser(_format):
-    if re.match(r"^>?(\d+)$", _format):  # x:5 or x:>5
-        g = re.match(r"^>?(\d+)$", _format).groups()
-        return fr"(?=[\d\s]{{{g[0]}}})\s*\d*", lambda x: x.strip()
+    if re.match(r"^[<^>]?(?P<n>\d+)$", _format):  # x:5, x:<5, x:^5, x:>5,
+        p = re.match(r"[<^>]?(?P<n>\d+)$", _format).groupdict()
+        return fr".{{{p['n']}}}", lambda x: x.strip()
     if re.match(",", _format):  # x:,
         return "-?[0-9|,]+", lambda x: int(x.replace(",", ""))
-    if re.match(r"\^[0-9]+", _format):  # x:^10
-        return fr"(?=[\d\s]{{{_format[1:]}}})\s*\d*\s*", lambda x: x.strip()
-    if re.match(r"<[0-9]+", _format):  # x:<10
-        return fr"(?=[\d\s]{{{_format[1:]}}})\d*\s*", lambda x: x.strip()
     if re.match(".[<^>][0-9]+", _format):  # x:=5
         return f".{{{_format[2:]}}}", lambda x: x.replace(_format[0], "")
     if re.match("^[d|n]$", _format):  # x:n
