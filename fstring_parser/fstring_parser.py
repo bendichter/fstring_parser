@@ -1,6 +1,8 @@
 from datetime import datetime
 import re
 from copy import copy
+from functools import partial
+
 
 dt_format_to_regex = {symbol: "[0-9]{2}" for symbol in "ymdIMS"}
 dt_format_to_regex.update({"-" + symbol: "[0-9]{1,2}" for symbol in "ymdIMS"})
@@ -22,16 +24,38 @@ def get_regex_for_datetime_format(_format):
     return regex
 
 
+def construct_parser(x, length=None, align=">", fill=' ', dtype=None, comma=None):
+    if length is not None:
+        if align == ">":
+            x = x.lstrip(fill)
+        elif align == "<":
+            x = x.rstrip(fill)
+        else:  # align == "^"
+            x = x.strip(fill)
+    if comma:
+        x = x.replace(",", "")
+    if dtype in ("d", "n"):
+        x = int(x)
+    elif dtype == "f":
+        x = float(x)
+    return x
+
+
+def construct_regex(length=None, align=">", fill=' ', dtype=None, comma=None):
+    if dtype or comma:  # is numeric
+        pass
+    else:  # is not numeric
+        return fr".{{{length}}}"
+
+
 def get_entry_regex_pattern_and_parser(_format):
-    if re.match(r"^[<^>]?(?P<n>\d+)$", _format):  # x:5, x:<5, x:^5, x:>5,
-        p = re.match(r"[<^>]?(?P<n>\d+)$", _format).groupdict()
-        return fr".{{{p['n']}}}", lambda x: x.strip()
+    if re.match(r"^(?P<fill>[^<^>])?(?P<align>[<^>])?(?P<length>\d+)$", _format):  # x:5, x:<5, x:^5, x:>5, x:=<5
+        p = re.match(r"^(?P<fill>[^<^>])?(?P<align>[<^>])?(?P<length>\d+)$", _format).groupdict()
+        return construct_regex(**p), partial(construct_parser, **p)
     if re.match(",", _format):  # x:,
         return "-?[0-9|,]+", lambda x: int(x.replace(",", ""))
-    if re.match(".[<^>][0-9]+", _format):  # x:=5
-        return f".{{{_format[2:]}}}", lambda x: x.replace(_format[0], "")
     if re.match("^[d|n]$", _format):  # x:n
-        return r"-?[0-9|\.]+", lambda x: int(x.replace(",", "").replace(".", ""))
+        return r"-?[0-9|\.]+", lambda x: int(x)
     if re.match("^[0-9]+[d|n]$", _format):  #5n
         return fr"(?=[\d\s]{{{_format[:-1]}}})\s*\d*", lambda x: int(x.strip())
     if _format == "f":  # x:f
