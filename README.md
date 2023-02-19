@@ -22,4 +22,6 @@ abc5,555,555abc123
 
 ## Installation
 
+```
 pip install fstring_parser
+```

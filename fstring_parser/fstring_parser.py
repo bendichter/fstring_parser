@@ -1,58 +1,54 @@
 from datetime import datetime
 import re
+from copy import copy
+
+dt_format_to_regex = {symbol: "[0-9]{2}" for symbol in "ymdIMS"}
+dt_format_to_regex.update({"-" + symbol: "[0-9]{1,2}" for symbol in "ymdIMS"})
+dt_format_to_regex.update(
+    Y="[0-9]{4}",
+    H="[0-9]{1,2}",
+    B="[January|February|March|April|May|June|July|August|September|October|November|December]",
+    b="[Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec]",
+    f="[0-9]{6}",
+    p="[AM|PM]",
+    z="[+|-][0-9]{4}",
+)
 
 
 def get_regex_for_datetime_format(_format):
-    regex = _format
-    for d, p in (
-            ("Y", "[0-9]{4}"),
-            ("y", "[0-9]{2}"),
-            ("-y", "[0-9]{1,2}"),
-            ("m", "[0-9]{2}"),
-            ("-m", "[0-9]{1,2}"),
-            ("B", "[January|February|March|April|May|June|July|August|September|October|November|December]"),
-            ("b", "[Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec]"),
-            ("d", "[0-9]{2}"),
-            ("-d", "[0-9]{1,2}"),
-            ("H", "[0-9]{1,2}"),
-            ("I", "[0-9]{2}"),
-            ("-I", "[0-9]{1,2}"),
-            ("M", "[0-9]{2}"),
-            ("-M", "[0-9]{1,2}"),
-            ("S", "[0-9]{2}"),
-            ("-S", "[0-9]{1,2}"),
-            ("f", "[0-9]{6}"),
-            ("p", "[AM|PM]"),
-            ("z", "[+|-][0-9]{4}"),
-    ):
-        regex = regex.replace(f"%{d}", p)
+    regex = copy(_format)
+    for k, v in dt_format_to_regex.items():
+        regex = regex.replace(f"%{k}", v)
     return regex
 
 
 def get_entry_regex_pattern_and_parser(_format):
-    if _format.isdigit():
-        return rf"([\s|\d]{{{_format}}})", lambda x: x.strip()
-    if _format == ",":
+    if re.match(r"^>?(\d+)$", _format):  # x:5 or x:>5
+        g = re.match(r"^>?(\d+)$", _format).groups()
+        return fr"(?=[\d\s]{{{g[0]}}})\s*\d*", lambda x: x.strip()
+    if re.match(",", _format):  # x:,
         return "-?[0-9|,]+", lambda x: int(x.replace(",", ""))
-    if re.match(r"[<^>][0-9]+", _format):
-        return rf"([\s|\d]{{{_format[1:]}}})", lambda x: x.strip()
-    if re.match(".[<^>][0-9]+", _format):
+    if re.match(r"\^[0-9]+", _format):  # x:^10
+        return fr"(?=[\d\s]{{{_format[1:]}}})\s*\d*\s*", lambda x: x.strip()
+    if re.match(r"<[0-9]+", _format):  # x:<10
+        return fr"(?=[\d\s]{{{_format[1:]}}})\d*\s*", lambda x: x.strip()
+    if re.match(".[<^>][0-9]+", _format):  # x:=5
         return f".{{{_format[2:]}}}", lambda x: x.replace(_format[0], "")
-    if _format in "dn":
+    if re.match("^[d|n]$", _format):  # x:n
         return r"-?[0-9|\.]+", lambda x: int(x.replace(",", "").replace(".", ""))
-    if re.match("^[0-9]+[d|n]$", _format):
-        return r"\s*-?[0-9|\.|,]+", lambda x: int(x.strip().replace(",", "").replace(".", ""))
-    if _format == "f":
+    if re.match("^[0-9]+[d|n]$", _format):  #5n
+        return fr"(?=[\d\s]{{{_format[:-1]}}})\s*\d*", lambda x: int(x.strip())
+    if _format == "f":  # x:f
         return r"-?[0-9|\.]+", lambda x: float(x)
     if re.match("[0-9]+f", _format):  # x:5f
         return r"-?[0-9|\.]+", lambda x: float(x.strip())
-    if re.match(r"\.\d+f", _format):  # .5f
+    if re.match(r"\.\d+f", _format):  # x:.5f
         return rf"-?[0-9]*\.[0-9]{{{_format[1:-1]}}}", lambda x: float(x)
-    if re.match(r",\.[0-9]+f", _format):
+    if re.match(r",\.[0-9]+f", _format):  # x:,.5f
         return rf"-?[0-9|,]*\.[0-9]{{{_format[1:-1]}}}", lambda x: float(x.replace(",", ""))
-    if "%Y" in _format:
+    if "%Y" in _format:  # x:%Y-%m-%dT%H-%M-%S
         return get_regex_for_datetime_format(_format), lambda x: datetime.strptime(x, _format)
-    raise NotImplementedError(f"format '{format}' has not been implemented yet.")
+    raise NotImplementedError(f"format '{format}' does not match any of the implemented patterns.")
 
 
 def generate_regex_and_parsers_from_fstring(fstring: str):
