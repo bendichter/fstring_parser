@@ -53,19 +53,19 @@ def get_entry_regex_pattern_and_parser(_format):
         p = re.match(r"^(?P<fill>[^<^>])?(?P<align>[<^>])?(?P<length>\d+)$", _format).groupdict()
         return construct_regex(**p), partial(construct_parser, **p)
     if re.match(",", _format):  # x:,
-        return "-?[0-9|,]+", lambda x: int(x.replace(",", ""))
-    if re.match("^[d|n]$", _format):  # x:n
-        return r"-?[0-9|\.]+", lambda x: int(x)
-    if re.match("^[0-9]+[d|n]$", _format):  #5n
+        return "-?[0-9,]+", lambda x: int(x.replace(",", ""))
+    if re.match("^[dn]$", _format):  # x:n
+        return r"-?[0-9\.]+", lambda x: int(x)
+    if re.match("^[0-9]+[dn]$", _format):  #5n
         return fr"(?=[\d\s]{{{_format[:-1]}}})\s*\d*", lambda x: int(x.strip())
     if _format == "f":  # x:f
-        return r"-?[0-9|\.]+", lambda x: float(x)
+        return r"-?[0-9\.]+", lambda x: float(x)
     if re.match("[0-9]+f", _format):  # x:5f
-        return r"-?[0-9|\.]+", lambda x: float(x.strip())
+        return r"-?[0-9\.]+", lambda x: float(x.strip())
     if re.match(r"\.\d+f", _format):  # x:.5f
         return rf"-?[0-9]*\.[0-9]{{{_format[1:-1]}}}", lambda x: float(x)
     if re.match(r",\.[0-9]+f", _format):  # x:,.5f
-        return rf"-?[0-9|,]*\.[0-9]{{{_format[1:-1]}}}", lambda x: float(x.replace(",", ""))
+        return rf"-?[0-9,]*\.[0-9]{{{_format[1:-1]}}}", lambda x: float(x.replace(",", ""))
     if "%Y" in _format:  # x:%Y-%m-%dT%H-%M-%S
         return get_regex_for_datetime_format(_format), lambda x: datetime.strptime(x, _format)
     raise NotImplementedError(f"format '{format}' does not match any of the implemented patterns.")
