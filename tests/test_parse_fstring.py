@@ -72,6 +72,23 @@ def test_special_characters():
     assert parse_fstring(r".\{x:5n}abc", rf".\{x:5n}abc") == {'x': 55}
 
 
+def test_special_characters2():
+    x = r"\/*^"
+    assert parse_fstring(r".\{x}abc", rf".\{x}abc") == {'x': r"\/*^"}
+
+
+def test_multiple():
+    x = 2
+    y = 5
+    assert parse_fstring("a{x:n}b{y:n}c{x:n}d", f"a{x:n}b{y:n}c{x:n}d") == {"x": 2, "y": 5}
+
+
+def test_multiple_no_match():
+    x = 2
+    y = 5
+    assert parse_fstring("a{x:n}b{y:n}c{x:n}d", f"a{x:n}b{y:n}c6d") is None
+
+
 
 
 
