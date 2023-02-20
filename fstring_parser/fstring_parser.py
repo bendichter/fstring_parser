@@ -56,7 +56,10 @@ def construct_parser(
     elif dtype in ("f", "e"):
         x = float(x)
     elif comma or plus_minus:
-        x = int(x)
+        if "." in x:
+            x = float(x)
+        else:
+            x = int(x)
     return x
 
 
@@ -73,7 +76,7 @@ def construct_regex(
         fill = re.escape(fill)
     else:
         fill = r"\s"
-    if dtype or comma:  # is numeric
+    if dtype or comma or plus_minus:  # is numeric
         regex = ""
         if align is not None and align in "^>" or (length and align != "<"):
             regex += fill + "*"
@@ -89,13 +92,15 @@ def construct_regex(
             regex += rf"\.[0-9]{{,{precision[1:]}}}"
         elif dtype == "f":
             regex += rf"\.[0-9]{{,6}}"
+        elif dtype not in ("d", "n", "e"):
+            regex += rf"(\.[0-9]{{,6}})?"
         if dtype == "e":
             regex += f"e[+-][0-9]{2}"
         if align is not None and align in "<^":
             regex += re.escape(fill) + "*"
         return regex
     else:  # is not numeric
-        return fr".{{{length}}}"
+        return fr".{{{length or '*'}}}"
 
 
 def get_entry_regex_pattern_and_parser(_format):
@@ -149,6 +154,7 @@ def generate_regex_and_parsers_from_fstring(fstring: str):
 class FstringParser:
     def __init__(self, fstring: str):
         self.pattern, self.parser_dict = generate_regex_and_parsers_from_fstring(fstring)
+        print(self.pattern)
 
     def __call__(self, string: str):
         self.match = re.match(self.pattern, string)

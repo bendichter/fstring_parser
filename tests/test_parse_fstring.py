@@ -89,6 +89,11 @@ def test_multiple_no_match():
     assert parse_fstring("a{x:n}b{y:n}c{x:n}d", f"a{x:n}b{y:n}c6d") is None
 
 
+def test_plus_float():
+    x = 2.3
+    assert parse_fstring("abc{x:+}", f"abc{x:+}") == {"x": 2.3}
+
+
 
 
 
