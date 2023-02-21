@@ -52,6 +52,11 @@ def test_05():
     assert parse_fstring("abc{x:05n}abc", f"abc{x:05n}abc") == dict(x=55)
 
 
+def test_15():
+    x = 55
+    assert parse_fstring("abc{x:15n}abc", f"abc{x:15n}abc") == dict(x=55)
+
+
 def test_f():
     x = 55.0
     assert parse_fstring("abc{x:f}abc", f"abc{x:f}abc") == dict(x=55.0)
