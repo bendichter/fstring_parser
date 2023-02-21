@@ -176,9 +176,8 @@ def test_double_braces():
         f"Number in {{hello}}: {num2:n}") == dict(num2=42)
 
 
-# not passing yet
-# def test_triple_braces():
-#     num2 = 42
-#     assert parse_fstring(
-#         "Number in: {{{num2:n}}}",
-#         f"Number in: {{{num2:n}}}") == dict(num2=42)
+def test_triple_braces():
+    num2 = 42
+    assert parse_fstring(
+        "Number in: {{{num2:n}}}",
+        f"Number in: {{{num2:n}}}") == dict(num2=42)
