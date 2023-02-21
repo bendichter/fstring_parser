@@ -204,16 +204,16 @@ class FstringParser:
     def __init__(self, fstring: str):
         self.pattern, self.parser_dict = generate_regex_and_parsers_from_fstring(fstring)
 
-    def __call__(self, string: str, parse=True):
+    def __call__(self, string: str, transform=True):
         self.match = re.match(self.pattern, string)
         if self.match is None:
             return None
-        if parse:
+        if transform:
             return {
                 k: self.parser_dict[k](v) for k, v in self.match.groupdict().items()
             }
         return self.match.groupdict()
 
 
-def parse_fstring(fstring: str, string: str, parse=True):
-    return FstringParser(fstring)(string, parse=parse)
+def parse_fstring(fstring: str, string: str, transform=True):
+    return FstringParser(fstring)(string, parse=transform)
