@@ -215,5 +215,5 @@ class FstringParser:
         return self.match.groupdict()
 
 
-def parse_fstring(fstring: str, string: str):
-    return FstringParser(fstring)(string)
+def parse_fstring(fstring: str, string: str, parse=True):
+    return FstringParser(fstring)(string, parse=parse)
