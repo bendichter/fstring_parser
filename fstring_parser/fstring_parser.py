@@ -93,7 +93,7 @@ def construct_regex(
         "," or "_" indicates that numbers >= 1000 should use comma styling with that character.
     precision : str, optional
         A period followed by number, indicating the number of decimal places to use.
-    dtype : {None, "d", "n", "f", "e", "b", "o", "#o", "x", #x", "X", "#X"}
+    dtype : {None, "s", "d", "n", "f", "e", "b", "o", "#o", "x", #x", "X", "#X"}
         The data type.
 
     Returns
@@ -159,7 +159,7 @@ def get_entry_regex_pattern_and_parser(format_):
         r"(?P<length>[1-9][0-9]*)?"
         r"(?P<comma>[,_])?"
         r"(?P<precision>\.\d+)?"
-        r"(?P<dtype>d|n|f|e|b|#?x|#?X|#?o)?$",
+        r"(?P<dtype>s|d|n|f|e|b|#?x|#?X|#?o)?$",
         format_,
     )
     if match:
@@ -173,7 +173,7 @@ def get_entry_regex_pattern_and_parser(format_):
 def generate_regex_and_parsers_from_fstring(fstring: str):
     # Find all group names in the filename pattern. Exclude closing bracket as a possible character to get atomic
     # matches.
-    entries = re.findall(r"(?<!{(?<!{)){([^{}]*)}", fstring)  # exclude double but not triple brackets
+    entries = re.findall(r"(?<![^{]{){([^{}]*)}", fstring)  # exclude double but not triple brackets
     fstring = fstring.replace("}}", "}")
     fstring = fstring.replace("{{", "{")
     # Replace each group name in the pattern with a named capture group pattern.
