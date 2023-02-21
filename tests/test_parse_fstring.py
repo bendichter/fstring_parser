@@ -94,6 +94,20 @@ def test_plus_float():
     assert parse_fstring("abc{x:+}", f"abc{x:+}") == {"x": 2.3}
 
 
+def test_pi():
+    num5 = 3.141592653589793
+    assert parse_fstring(
+        "Pi is approximately equal to {num5:.2f}",
+        f"Pi is approximately equal to {num5:.2f}"
+    ) == dict(num5=3.14)
+
+
+def test_exponential():
+    num6 = 0.000000000003141592653589793
+    assert parse_fstring(
+        "Pi in scientific notation: {num6:e}",
+        f"Pi in scientific notation: {num6:e}",
+    ) == dict(num6=0.000000000003141593)
 
 
 

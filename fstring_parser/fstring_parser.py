@@ -2,6 +2,7 @@ from datetime import datetime
 import re
 from copy import copy
 from functools import partial
+from typing import Optional
 
 
 dt_format_to_regex = {symbol: "[0-9]{2}" for symbol in "ymdIMSUW"}
@@ -31,12 +32,12 @@ def get_regex_for_datetime_format(_format):
 
 def construct_parser(
     x,
-    align: str = None,
-    plus_minus: str = None,
-    length: str = None,
-    comma: str = None,
-    precision: str = None,
-    dtype: str = None,
+    align: Optional[str] = None,
+    plus_minus: Optional[str] = None,
+    length: Optional[str] = None,
+    comma: Optional[str] = None,
+    precision: Optional[str] = None,
+    dtype: Optional[str] = None,
 ):
     if align is not None and len(align) == 2:
         fill, align = align
@@ -64,46 +65,70 @@ def construct_parser(
 
 
 def construct_regex(
-    align: str = None,
-    plus_minus: str = None,
-    length: str = None,
-    comma: str = None,
-    precision: str = None,
-    dtype: str = None,
+    align: Optional[str] = None,
+    plus_minus: Optional[str] = None,
+    length: Optional[str] = None,
+    comma: str = "",
+    precision: Optional[str] = None,
+    dtype: Optional[str] = None,
 ):
+    """
+
+    Parameters
+    ----------
+    align : str, optional
+        An alignment character ("<", "^", or ">") optionally preceded by a fill character.
+    plus_minus : str, optional
+        "+" or "-". Indicates styling and implicitly indicates that the string is numeric.
+    length : str, optional
+        Must be a numeric string. Indicates the length of the string.
+    comma : {"", ","}
+        "," indicates that numbers >= 1000 should use comma styling
+    precision : str, optional
+        A period followed by number, indicating the number of decimal places to use.
+    dtype : {None, "d", "n", "f", "e"}
+        The data type.
+
+    Returns
+    -------
+    str
+
+    """
+    if not (dtype or comma or plus_minus):  # could be a string. Do not impose any form.
+        return fr".{{{length or '+'}}}"
+
     if align is not None and len(align) == 2:
         fill, align = align
         fill = re.escape(fill)
     else:
         fill = r"\s"
-    if dtype or comma or plus_minus:  # is numeric
-        regex = ""
-        if align is not None and align in "^>" or (length and align != "<"):
-            regex += fill + "*"
-        if plus_minus == "+":
-            regex += r"[\+-]" + "?"
-        else:
-            regex += r"-?"
-        if comma:
-            regex += "[0-9,]+"
-        else:
-            regex += "[0-9]+"
-        if precision:
-            regex += rf"\.[0-9]{{,{precision[1:]}}}"
-        elif dtype == "f":
-            regex += rf"\.[0-9]{{,6}}"
-        elif dtype not in ("d", "n", "e"):
-            regex += rf"(\.[0-9]{{,6}})?"
-        if dtype == "e":
-            regex += f"e[+-][0-9]{2}"
-        if align is not None and align in "<^":
-            regex += re.escape(fill) + "*"
-        return regex
-    else:  # is not numeric
-        return fr".{{{length or '*'}}}"
+
+    regex = ""
+    if align is not None and align in "^>" or (length and align != "<"):
+        regex += fill + "*"
+    if plus_minus == "+":
+        regex += r"[\+-]" + "?"
+    else:
+        regex += r"-?"
+    if comma:
+        regex += "[0-9,]+"
+    else:
+        regex += "[0-9]+"
+    if precision:
+        regex += rf"\.[0-9]{{,{precision[1:]}}}"
+    elif dtype == "f":
+        regex += rf"\.[0-9]{{,6}}"
+    elif dtype not in ("d", "n", "e"):
+        regex += rf"(\.[0-9]{{,6}})?"
+    if dtype == "e":
+        regex += rf"\.[0-9]+e[+-][0-9]{{{2}}}"
+    if align is not None and align in "<^":
+        regex += re.escape(fill) + "*"
+    return regex
 
 
-def get_entry_regex_pattern_and_parser(_format):
+def get_entry_regex_pattern_and_parser(format_):
+    # first try numeric or string
     match = re.match(
         r"^(?P<align>.?[<^>])?"
         r"(?P<plus_minus>[+-])?"
@@ -111,30 +136,30 @@ def get_entry_regex_pattern_and_parser(_format):
         r"(?P<comma>,)?"
         r"(?P<precision>\.\d+)?"
         r"(?P<dtype>[dnfe])?$",
-        _format,
+        format_,
     )
     if match:
         p = match.groupdict()
         return construct_regex(**p), partial(construct_parser, **p)
-    if "%Y" in _format:  # x:%Y-%m-%dT%H-%M-%S
-        return get_regex_for_datetime_format(_format), lambda x: datetime.strptime(x, _format)
+    if "%Y" in format_:  # then try datetime
+        return get_regex_for_datetime_format(format_), lambda x: datetime.strptime(x, format_)
     raise NotImplementedError(f"format '{format}' does not match any of the implemented patterns.")
 
 
 def generate_regex_and_parsers_from_fstring(fstring: str):
-    # Find all group names in the filename pattern
+    # Find all group names in the filename pattern. Exclude closing bracket as a possible character to get atomic
+    # matches.
     entries = re.findall(r"{([^}]*)}", fstring)
 
-    # Replace each group name in the pattern with a named capture group pattern
+    # Replace each group name in the pattern with a named capture group pattern.
     regex_pattern = f"^{re.escape(fstring)}$"
 
     parser_dict = dict()
 
     for entry in set(entries):
         if ":" in entry:
-            print(entry)
-            label, _format = entry.split(":")
-            entry_regex, entry_parser = get_entry_regex_pattern_and_parser(_format)
+            label, format_ = entry.split(":")
+            entry_regex, entry_parser = get_entry_regex_pattern_and_parser(format_)
             parser_dict[label] = entry_parser
         else:
             label = entry
@@ -144,7 +169,7 @@ def generate_regex_and_parsers_from_fstring(fstring: str):
     # Replace subsequent occurrences with reference to appropriate capture group pattern
     for entry in set(entries):
         if ":" in entry:
-            label, _format = entry.split(":")
+            label, format_ = entry.split(":")
         else:
             label = entry
         regex_pattern = regex_pattern.replace(re.escape(f"{{{entry}}}"), rf"(?P={label})")
@@ -157,6 +182,7 @@ class FstringParser:
         print(self.pattern)
 
     def __call__(self, string: str):
+        print(string)
         self.match = re.match(self.pattern, string)
         if self.match is None:
             return None
