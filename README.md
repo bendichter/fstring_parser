@@ -3,7 +3,7 @@
 Use f-string syntax to parse values from strings.
 
 fstring_parser allows you to *reverse* f-string syntax to extract data from strings. For example, let's say you had a 
-bunch of strings like::
+bunch of strings like:
 
 ```python
 strings = [
