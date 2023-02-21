@@ -57,7 +57,7 @@ def construct_parser(
         x = float(x)
     elif dtype == "b":
         x = int(x, 2)
-    elif dtype in ("x", "X"):
+    elif dtype in ("x", "X", "#x", "#X"):
         x = int(x, 16)
     elif dtype in ("o", "#o"):
         x = int(x, 8)
@@ -93,7 +93,7 @@ def construct_regex(
         "," or "_" indicates that numbers >= 1000 should use comma styling with that character.
     precision : str, optional
         A period followed by number, indicating the number of decimal places to use.
-    dtype : {None, "d", "n", "f", "e", "b", "o", "#o"}
+    dtype : {None, "d", "n", "f", "e", "b", "o", "#o", "x", #x", "X", "#X"}
         The data type.
 
     Returns
@@ -124,8 +124,12 @@ def construct_regex(
         regex += "[01]+"
     elif dtype == "x":
         regex += "[0-9a-f]+"
+    elif dtype == "#x":
+        regex += "0x[0-9a-f]+"
     elif dtype == "X":
         regex += "[0-9A-F]+"
+    elif dtype == "#X":
+        regex += "0x[0-9A-F]+"
     elif dtype == "o":
         regex += "[0-7]+"
     elif dtype == "#o":
@@ -154,7 +158,7 @@ def get_entry_regex_pattern_and_parser(format_):
         r"(?P<length>[1-9][0-9]*)?"
         r"(?P<comma>[,_])?"
         r"(?P<precision>\.\d+)?"
-        r"(?P<dtype>d|n|f|e|b|x|X|#?o)?$",
+        r"(?P<dtype>d|n|f|e|b|#?x|#?X|#?o)?$",
         format_,
     )
     if match:

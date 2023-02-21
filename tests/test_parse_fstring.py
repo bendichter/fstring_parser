@@ -148,6 +148,12 @@ def test_hexadecimal():
     assert parse_fstring("Number in binary: {num2:x}", f"Number in binary: {num2:x}") == dict(num2=42)
 
 
+def test_hexadecimal_alt():
+    num2 = 42
+    assert parse_fstring("Number in binary: {num2:#x}", f"Number in binary: {num2:#x}") == dict(num2=42)
+
+
+
 def test_hexadecimal_upper():
     num2 = 42
     assert parse_fstring("Number in binary: {num2:X}", f"Number in binary: {num2:X}") == dict(num2=42)
