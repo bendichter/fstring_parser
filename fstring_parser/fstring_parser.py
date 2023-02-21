@@ -172,11 +172,11 @@ def get_entry_regex_pattern_and_parser(format_):
 def generate_regex_and_parsers_from_fstring(fstring: str):
     # Find all group names in the filename pattern. Exclude closing bracket as a possible character to get atomic
     # matches.
-    entries = re.findall(r"{([^}]*)}", fstring)  # todo: support double braces
-
+    entries = re.findall(r"(?<!{){([^{}]*)}", fstring)  # to do: handle triple braces
+    fstring = fstring.replace("}}", "}")
+    fstring = fstring.replace("{{", "{")
     # Replace each group name in the pattern with a named capture group pattern.
     regex_pattern = f"^{re.escape(fstring)}$"
-
     parser_dict = dict()
 
     for entry in set(entries):

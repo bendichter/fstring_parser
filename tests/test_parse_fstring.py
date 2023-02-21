@@ -1,4 +1,4 @@
-from fstring_parser import parse_fstring, FstringParser
+from fstring_parser import parse_fstring
 from datetime import datetime
 
 
@@ -145,26 +145,40 @@ def test_binary():
 
 def test_hexadecimal():
     num2 = 42
-    assert parse_fstring("Number in binary: {num2:x}", f"Number in binary: {num2:x}") == dict(num2=42)
+    assert parse_fstring("Number in hex: {num2:x}", f"Number in hex: {num2:x}") == dict(num2=42)
 
 
 def test_hexadecimal_alt():
     num2 = 42
-    assert parse_fstring("Number in binary: {num2:#x}", f"Number in binary: {num2:#x}") == dict(num2=42)
+    assert parse_fstring("Number in hex: {num2:#x}", f"Number in hex: {num2:#x}") == dict(num2=42)
 
 
 
 def test_hexadecimal_upper():
     num2 = 42
-    assert parse_fstring("Number in binary: {num2:X}", f"Number in binary: {num2:X}") == dict(num2=42)
+    assert parse_fstring("Number in hex: {num2:X}", f"Number in hex: {num2:X}") == dict(num2=42)
 
 
 def test_octal():
     num2 = 42
-    assert parse_fstring("Number in binary: {num2:o}", f"Number in binary: {num2:o}") == dict(num2=42)
+    assert parse_fstring("Number in octal: {num2:o}", f"Number in octal: {num2:o}") == dict(num2=42)
 
 
 def test_octal_alt():
     num2 = 42
-    assert parse_fstring("Number in binary: {num2:#o}", f"Number in binary: {num2:#o}") == dict(num2=42)
+    assert parse_fstring("Number in octal: {num2:#o}", f"Number in octal: {num2:#o}") == dict(num2=42)
 
+
+def test_double_braces():
+    num2 = 42
+    assert parse_fstring(
+        "Number in {{hello}}: {num2:n}",
+        f"Number in {{hello}}: {num2:n}") == dict(num2=42)
+
+
+# not passing yet
+# def test_triple_braces():
+#     num2 = 42
+#     assert parse_fstring(
+#         "Number in: {{{num2:n}}}",
+#         f"Number in: {{{num2:n}}}") == dict(num2=42)
