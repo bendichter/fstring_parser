@@ -7,6 +7,11 @@ def test_5():
     assert parse_fstring("abc{x:5}abc", f"abc{x:5}abc") == {'x': '55'}
 
 
+def test_s():
+    x = "55"
+    assert parse_fstring("abc{x:s}abc", f"abc{x:s}abc") == {'x': '55'}
+
+
 def test_5comma():
     x=5555555
     assert parse_fstring("abc{x:,}abc", f"abc{x:,}abc") == {'x': 5555555}
