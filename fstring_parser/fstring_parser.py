@@ -59,7 +59,7 @@ def construct_parser(
         x = int(x, 2)
     elif dtype == "x":
         x = int(x, 16)
-    elif dtype == "o":
+    elif dtype in ("o", "#o"):
         x = int(x, 8)
     elif comma or plus_minus:
         if "." in x:
@@ -93,7 +93,7 @@ def construct_regex(
         "," indicates that numbers >= 1000 should use comma styling
     precision : str, optional
         A period followed by number, indicating the number of decimal places to use.
-    dtype : {None, "d", "n", "f", "e", "b"}
+    dtype : {None, "d", "n", "f", "e", "b", "o", "#o"}
         The data type.
 
     Returns
@@ -113,7 +113,9 @@ def construct_regex(
     if align is not None and align in "^>" or (length and align != "<"):
         regex += fill + "*"
     if plus_minus == "+":
-        regex += r"[\+-]" + "?"
+        regex += r"[\+-]"
+    elif plus_minus == " ":
+        regex += r"[ -]"
     else:
         regex += r"-?"
     if comma:
@@ -124,6 +126,8 @@ def construct_regex(
         regex += "[0-9a-fA-F]+"
     elif dtype == "o":
         regex += "[0-7]+"
+    elif dtype == "#o":
+        regex += "0o[0-7]+"
     else:
         regex += "[0-9]+"
     if precision:
@@ -144,11 +148,11 @@ def get_entry_regex_pattern_and_parser(format_):
     match = re.match(
         r"^(?P<fill>([^<^>1-9](?=[<^>]?[+-]?[1-9][0-9]*)|[1-9](?=[<^>])))?"
         r"(?P<align>.?[<^>])?"
-        r"(?P<plus_minus>[+-])?"  # todo: support space here
+        r"(?P<plus_minus>[ +-])?"
         r"(?P<length>[1-9][0-9]*)?"
         r"(?P<comma>,)?"
         r"(?P<precision>\.\d+)?"
-        r"(?P<dtype>[dnfebxo])?$",
+        r"(?P<dtype>d|n|f|e|b|x|#?o)?$",
         format_,
     )
     if match:

@@ -52,6 +52,11 @@ def test_05():
     assert parse_fstring("abc{x:05n}abc", f"abc{x:05n}abc") == dict(x=55)
 
 
+def test_05():
+    x = 55
+    assert parse_fstring("abc{x:05n}abc", f"abc{x:05n}abc") == dict(x=55)
+
+
 def test_15():
     x = 55
     assert parse_fstring("abc{x:15n}abc", f"abc{x:15n}abc") == dict(x=55)
@@ -143,4 +148,7 @@ def test_octal():
     assert parse_fstring("Number in binary: {num2:o}", f"Number in binary: {num2:o}") == dict(num2=42)
 
 
+def test_octal_alt():
+    num2 = 42
+    assert parse_fstring("Number in binary: {num2:#o}", f"Number in binary: {num2:#o}") == dict(num2=42)
 
