@@ -47,7 +47,9 @@ pattern = re.compile('^sub\\-(?P<sub>0*-?[0-9]+)/sub\\-(?P=sub)(?P<ses>.+)$')
 ```
 
 Regular expressions can become quite difficult as the formatting gets more complex, and this library provides a much 
-simpler syntax if you do not need more advanced matching. Second, this library infers the data type from the format 
+simpler syntax if you do not need more advanced matching.
+
+Second, this library infers the data type from the format 
 and transforms the extracted data into the appropriate type. In this example, since "sub" was formatted with the "n" 
 data type, it was transformed into an integer. You can disable this with the `transform=False`:
 
