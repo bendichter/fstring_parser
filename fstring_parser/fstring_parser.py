@@ -216,4 +216,4 @@ class FstringParser:
 
 
 def parse_fstring(fstring: str, string: str, transform=True):
-    return FstringParser(fstring)(string, parse=transform)
+    return FstringParser(fstring)(string, transform=transform)

@@ -183,5 +183,5 @@ def test_fstring_parser():
     assert parse_fstring(
         "Number in octal: {num2:#o}",
         f"Number in octal: {num2:#o}",
-        parse=False,
+        transform=False,
     ) == dict(num2="0o52")
