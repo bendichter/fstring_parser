@@ -110,7 +110,27 @@ def test_exponential():
     ) == dict(num6=0.000000000003141593)
 
 
+def test_exponential_with_precision():
+    num6 = 0.000000000003141592653589793
+    assert parse_fstring(
+        "Pi in scientific notation: {num6:e}",
+        f"Pi in scientific notation: {num6:.2e}",
+    ) == dict(num6=0.00000000000314)
 
+
+def test_binary():
+    num2 = 42
+    assert parse_fstring("Number in binary: {num2:b}", f"Number in binary: {num2:b}") == dict(num2=42)
+
+
+def test_hexadecimal():
+    num2 = 42
+    assert parse_fstring("Number in binary: {num2:x}", f"Number in binary: {num2:x}") == dict(num2=42)
+
+
+def test_octal():
+    num2 = 42
+    assert parse_fstring("Number in binary: {num2:o}", f"Number in binary: {num2:o}") == dict(num2=42)
 
 
 
