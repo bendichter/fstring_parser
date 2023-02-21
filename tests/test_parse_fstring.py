@@ -12,6 +12,11 @@ def test_5comma():
     assert parse_fstring("abc{x:,}abc", f"abc{x:,}abc") == {'x': 5555555}
 
 
+def test_5comma_underscore():
+    x=5555555
+    assert parse_fstring("abc{x:_}abc", f"abc{x:_}abc") == {'x': 5555555}
+
+
 def test_5n():
     x = 55
     assert parse_fstring("abc{x:5n}abc", f"abc{x:5n}abc") == dict(x=55)

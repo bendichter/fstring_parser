@@ -50,7 +50,7 @@ def construct_parser(
         else:  # align == "^"
             x = x.strip(fill)
     if comma:
-        x = x.replace(",", "")
+        x = x.replace(comma, "")
     if dtype in ("d", "n"):
         x = int(x)
     elif dtype in ("f", "e"):
@@ -89,8 +89,8 @@ def construct_regex(
         "+" or "-". Indicates styling and implicitly indicates that the string is numeric.
     length : str, optional
         Must be a numeric string. Indicates the length of the string.
-    comma : {"", ","}
-        "," indicates that numbers >= 1000 should use comma styling
+    comma : {"", ",", "_"}
+        "," or "_" indicates that numbers >= 1000 should use comma styling with that character.
     precision : str, optional
         A period followed by number, indicating the number of decimal places to use.
     dtype : {None, "d", "n", "f", "e", "b", "o", "#o"}
@@ -119,7 +119,7 @@ def construct_regex(
     else:
         regex += r"-?"
     if comma:
-        regex += "[0-9,]+"
+        regex += f"[0-9{comma}]+"
     elif dtype == "b":
         regex += "[01]+"
     elif dtype == "x":
@@ -152,7 +152,7 @@ def get_entry_regex_pattern_and_parser(format_):
         r"(?P<align>.?[<^>])?"
         r"(?P<plus_minus>[ +-])?"
         r"(?P<length>[1-9][0-9]*)?"
-        r"(?P<comma>,)?"
+        r"(?P<comma>[,_])?"
         r"(?P<precision>\.\d+)?"
         r"(?P<dtype>d|n|f|e|b|x|X|#?o)?$",
         format_,
