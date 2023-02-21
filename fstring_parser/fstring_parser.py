@@ -32,6 +32,7 @@ def get_regex_for_datetime_format(_format):
 
 def construct_parser(
     x,
+    fill: Optional[str] = None,
     align: Optional[str] = None,
     plus_minus: Optional[str] = None,
     length: Optional[str] = None,
@@ -39,9 +40,7 @@ def construct_parser(
     precision: Optional[str] = None,
     dtype: Optional[str] = None,
 ):
-    if align is not None and len(align) == 2:
-        fill, align = align
-    else:
+    if not fill:
         fill = None
     if length is not None:
         if align in (">", None):
@@ -71,6 +70,7 @@ def construct_parser(
 
 
 def construct_regex(
+    fill: Optional[str] = ' ',
     align: Optional[str] = None,
     plus_minus: Optional[str] = None,
     length: Optional[str] = None,
@@ -82,6 +82,7 @@ def construct_regex(
 
     Parameters
     ----------
+    fill : str, optional
     align : str, optional
         An alignment character ("<", "^", or ">") optionally preceded by a fill character.
     plus_minus : str, optional
@@ -103,11 +104,10 @@ def construct_regex(
     if not (dtype or comma or plus_minus):  # could be a string. Do not impose any form.
         return fr".{{{length or '+'}}}"
 
-    if align is not None and len(align) == 2:
-        fill, align = align
-        fill = re.escape(fill)
-    else:
+    if not fill:
         fill = r"\s"
+    else:
+        fill = re.escape(fill)
 
     regex = ""
     if align is not None and align in "^>" or (length and align != "<"):
@@ -142,7 +142,8 @@ def construct_regex(
 def get_entry_regex_pattern_and_parser(format_):
     # first try numeric or string
     match = re.match(
-        r"^(?P<align>.?[<^>])?"
+        r"^((?P<fill>[^<^>]?)(?=[<^>]?[+-]?\d+))?"
+        r"(?P<align>.?[<^>])?"
         r"(?P<plus_minus>[+-])?"
         r"(?P<length>\d+)?"
         r"(?P<comma>,)?"
@@ -191,10 +192,8 @@ def generate_regex_and_parsers_from_fstring(fstring: str):
 class FstringParser:
     def __init__(self, fstring: str):
         self.pattern, self.parser_dict = generate_regex_and_parsers_from_fstring(fstring)
-        print(self.pattern)
 
     def __call__(self, string: str):
-        print(string)
         self.match = re.match(self.pattern, string)
         if self.match is None:
             return None
