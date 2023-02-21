@@ -1,4 +1,4 @@
-from fstring_parser import parse_fstring
+from fstring_parser import parse_fstring, FstringParser
 from datetime import datetime
 
 
@@ -176,3 +176,11 @@ def test_triple_braces():
     assert parse_fstring(
         "Number in: {{{num2:n}}}",
         f"Number in: {{{num2:n}}}") == dict(num2=42)
+
+
+def test_fstring_parser():
+    num2 = 42
+    assert FstringParser("Number in octal: {num2:#o}")(
+        f"Number in octal: {num2:#o}",
+        parse=False,
+    ) == dict(num2="0o52")

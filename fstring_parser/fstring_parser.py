@@ -152,6 +152,7 @@ def construct_regex(
 def get_entry_regex_pattern_and_parser(format_):
     # first try numeric or string
     match = re.match(
+        # fill: If length is present, allow for any character except <^>1-9. If alignment is present, allow for 1-9.
         r"^(?P<fill>([^<^>1-9](?=[<^>]?[+-]?[1-9][0-9]*)|[1-9](?=[<^>])))?"
         r"(?P<align>.?[<^>])?"
         r"(?P<plus_minus>[ +-])?"
@@ -203,13 +204,15 @@ class FstringParser:
     def __init__(self, fstring: str):
         self.pattern, self.parser_dict = generate_regex_and_parsers_from_fstring(fstring)
 
-    def __call__(self, string: str):
+    def __call__(self, string: str, parse=True):
         self.match = re.match(self.pattern, string)
         if self.match is None:
             return None
-        return {
-            k: self.parser_dict[k](v) for k, v in self.match.groupdict().items()
-        }
+        if parse:
+            return {
+                k: self.parser_dict[k](v) for k, v in self.match.groupdict().items()
+            }
+        return self.match.groupdict()
 
 
 def parse_fstring(fstring: str, string: str):
